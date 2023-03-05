@@ -33,6 +33,7 @@ def first_folder():
 
     return my_path
 
+
 # Ітеруємось по теці і виводимо всі файли на 1 рівень
 
 
@@ -52,6 +53,43 @@ def find_and_up(path: Path, target_path: Path):
                     f"{file_path.name} in {file_path.resolve()} - exist, plese rename ")
 
 # міняємо назви, з кирилиці на латинські, замість знаків "_"
+
+
+def normalize(my_path: Path):
+
+    CYRILLIC_SYMBOLS = "абвгдеёжзийклмнопрстуфхцчшщъыьэюяєіїґ"
+
+    TRANSLATION = ("a", "b", "v", "g", "d", "e", "e", "j", "z", "i", "j", "k", "l", "m", "n", "o", "p", "r", "s", "t", "u",
+                   "f", "h", "ts", "ch", "sh", "sch", "", "y", "", "e", "yu", "ya", "je", "i", "ji", "g")
+
+    TRANS = {}
+
+    for c, l in zip(CYRILLIC_SYMBOLS, TRANSLATION):
+        TRANS[ord(c)] = l
+        TRANS[ord(c.upper())] = l.upper()
+
+    for file_dir in my_path.iterdir():
+        fd_name = file_dir.name.split(".")[0]
+
+        for w in fd_name:
+            if w in string.punctuation:
+                fd_name = fd_name.replace(w, "_")
+        fd_new = fd_name.translate(TRANS)
+
+        fd_suf = ""
+        nfd_suf = fd_suf.join(re.findall(r"\.\w{2,4}", file_dir.name))
+
+        if nfd_suf:
+            fool_name = fd_new + nfd_suf
+            old_file_path = my_path / file_dir.name
+            new_file_path = old_file_path.with_name(fool_name)
+            old_file_path.rename(new_file_path)
+        else:
+            old_file_path = my_path / file_dir.name
+            new_file_path = old_file_path.with_name(fd_new)
+            old_file_path.rename(new_file_path)
+
+    # функція для видалення тек
 
 
 # видяляэмо пусті теки
@@ -138,41 +176,6 @@ def sort_and_move(my_path: Path):
             print("")
     return print(f" Розширення які зустрічались в папці: {set(info)} Архіви: {set(info_arch)}\n Невідомі розширення {set(info_others)}"),
 
-
-def normalize(my_path: Path):
-
-    CYRILLIC_SYMBOLS = "абвгдеёжзийклмнопрстуфхцчшщъыьэюяєіїґ"
-
-    TRANSLATION = ("a", "b", "v", "g", "d", "e", "e", "j", "z", "i", "j", "k", "l", "m", "n", "o", "p", "r", "s", "t", "u",
-                   "f", "h", "ts", "ch", "sh", "sch", "", "y", "", "e", "yu", "ya", "je", "i", "ji", "g")
-
-    TRANS = {}
-
-    for c, l in zip(CYRILLIC_SYMBOLS, TRANSLATION):
-        TRANS[ord(c)] = l
-        TRANS[ord(c.upper())] = l.upper()
-
-    for file_dir in my_path.iterdir():
-        fd_name = file_dir.name.split(".")[0]
-
-        for w in fd_name:
-            if w in string.punctuation:
-                fd_name = fd_name.replace(w, "_")
-        fd_new = fd_name.translate(TRANS)
-
-        fd_suf = ""
-        nfd_suf = fd_suf.join(re.findall(r"\.\w{2,4}", file_dir.name))
-
-        if nfd_suf:
-            fool_name = fd_new + nfd_suf
-            old_file_path = my_path / file_dir.name
-            new_file_path = old_file_path.with_name(fool_name)
-            old_file_path.rename(new_file_path)
-        else:
-            old_file_path = my_path / file_dir.name
-            new_file_path = old_file_path.with_name(fd_new)
-            old_file_path.rename(new_file_path)
-
 # виводимо інформацію про файли в теках
 
 
@@ -191,11 +194,11 @@ def main():
     my_path = first_folder()
 
     find_and_up(my_path, my_path)
+    normalize(my_path)
     del_empty_folders(my_path)
     create_folders(my_path)
     unpack_archive(my_path)
     sort_and_move(my_path)
-    normalize(my_path)
     list_files(my_path)
 
 
